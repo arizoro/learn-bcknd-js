@@ -1,0 +1,18 @@
+<%- include('partials/header.ejs') %>
+<%- include('partials/navbar.ejs') %>
+
+    <h1>Halaman : <%= data.title %></h1>
+    <% if( data.img) { %>
+        <img src="<%= data.img %>" alt="">
+        <% } %>
+    <h1>Followerrs : <%= data.followers %> </h1>
+
+    <hr>
+    <h3><%= data.description %></h3>
+    
+    <% for(let post of data.posts) { %>
+        <p><%= post.title %></p>
+        <p><%= post.author %></p>
+    <% } %>
+    
+    <%- include('partials/footer.ejs') %>
