@@ -22,6 +22,10 @@
                         <%= product.category %>
                         </a> 
         </li>
+
+        <li>
+            Garmen : <a href="/garments/<%= product.garment._id %>"><%= product.garment.name %></a>
+        </li>
     </ul>
     <a href="/products">back</a>
     <a href="/products/<%= product._id %>/edit">Edit</a>

@@ -11,8 +11,11 @@ app.set('view engine', 'ejs')
 app.use(express.urlencoded({extended : true}))
 app.use(methodOverride('_method'))
 
-const Product = require('./models/product')
 const { error } = require('console')
+
+// *models
+const Product = require('./models/product')
+const Garment = require('./models/garment')
 
 // ! function wrapAsynck untuk ke mongose
 function wrapAsync(fn){
@@ -56,8 +59,9 @@ app.get('/products/create', (req,res) => {
 
 app.get('/products/:id', wrapAsync(async(req,res) => {
         const {id} = req.params
-        const product = await Product.findById(id)
+        const product = await Product.findById(id).populate('garment')
         res.render('products/detail', {product})
+        // res.send(product)
     }
 ))
 
@@ -83,7 +87,7 @@ app.put('/products/:id', async(req,res, next) => {
 })
 
 
-app.delete('/products/:id', async(req,res) => {
+app.delete('/products/:id', wrapAsync(async(req,res) => {
     try {
         const {id} = req.params
         await Product.findByIdAndDelete(id)
@@ -91,7 +95,55 @@ app.delete('/products/:id', async(req,res) => {
     } catch (error) {
         next( new ErrorHandler('Product Not Found' , 404))
     }
+}))
+
+app.get('/garments', wrapAsync(async(req,res) => {
+    const garments = await Garment.find({})
+    res.render('garments/index', {garments})
+}))
+
+app.get('/garments/create', (req,res) => {
+    res.render('garments/create')
 })
+
+app.post('/garments', wrapAsync(async(req,res) => {
+    const garment = new Garment(req.body)
+    await garment.save()
+    res.redirect(`/garments`)
+}))
+
+app.get('/garments/:id', wrapAsync(async (req,res) => {
+    const {id} = req.params
+    const garment = await Garment.findById(id).populate('products')
+    res.render(`garments/detail`, {garment})
+    // res.send(garment)
+}))
+
+app.get('/garments/:garment_id/products/create',(req, res) => {
+    
+    const {garment_id} = req.params
+    res.render('products/create', {garment_id})
+})
+
+app.post('/garments/:garment_id/products', wrapAsync( async(req, res) => {
+    const {garment_id} = req.params
+    const garment = await Garment.findById(garment_id)
+    const product = new Product(req.body)
+    console.log(product)
+    product.garment = garment
+    garment.products.push(product)
+    await garment.save()
+    await product.save()
+    console.log(garment)
+
+    res.redirect(`/garments/${garment_id}`)
+}))
+
+app.delete('/garments/:garment_id', wrapAsync( async(req, res) => {
+    const {garment_id} = req.params
+    await Garment.findOneAndDelete({_id : garment_id})
+    res.redirect('/garments')
+}))
 
 const validatorHendler = err => {
     err.status = 400
